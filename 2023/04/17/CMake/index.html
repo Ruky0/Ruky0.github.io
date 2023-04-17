@@ -16,22 +16,22 @@
   <meta name="author" content="Ruky">
   <meta name="keywords" content="">
   
-    <meta name="description" content="笔记存档, 便于查阅;督促学习;满足收集欲;">
+    <meta name="description" content="CMake啥是CMake?工程量比较大的时候手动进行链接、编译等工作十分复杂, 使用make进行批处理可以简化流程. Make使用的Makefile需要手动编写,编写这个文件有时也十分复杂, 所以CMake便出现来简化Makefile的流程. CMake可以在文件(CMakeLists.txt)中配置编译、调试等步骤的参数, 之后调用指令便不用每次都敲g++、gdb和一堆参数. VS中这一工作由I">
 <meta property="og:type" content="article">
-<meta property="og:title" content="第一篇博客">
-<meta property="og:url" content="http://example.com/2023/04/17/my-first-blog/index.html">
+<meta property="og:title" content="CMake">
+<meta property="og:url" content="http://example.com/2023/04/17/CMake/index.html">
 <meta property="og:site_name" content="Ruky&#39;s blog">
-<meta property="og:description" content="笔记存档, 便于查阅;督促学习;满足收集欲;">
+<meta property="og:description" content="CMake啥是CMake?工程量比较大的时候手动进行链接、编译等工作十分复杂, 使用make进行批处理可以简化流程. Make使用的Makefile需要手动编写,编写这个文件有时也十分复杂, 所以CMake便出现来简化Makefile的流程. CMake可以在文件(CMakeLists.txt)中配置编译、调试等步骤的参数, 之后调用指令便不用每次都敲g++、gdb和一堆参数. VS中这一工作由I">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2023-04-17T08:00:53.000Z">
-<meta property="article:modified_time" content="2023-04-17T12:29:08.349Z">
+<meta property="article:published_time" content="2023-04-17T12:32:20.000Z">
+<meta property="article:modified_time" content="2023-04-17T15:07:55.862Z">
 <meta property="article:author" content="Ruky">
-<meta property="article:tag" content="杂项">
+<meta property="article:tag" content="Linux C++">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>第一篇博客 - Ruky&#39;s blog</title>
+  <title>CMake - Ruky&#39;s blog</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -197,7 +197,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="第一篇博客"></span>
+            <span id="subtitle" data-typed-text="CMake"></span>
           
         </div>
 
@@ -208,8 +208,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-04-17 16:00" pubdate>
-          2023年4月17日 下午
+        <time datetime="2023-04-17 20:32" pubdate>
+          2023年4月17日 晚上
         </time>
       </span>
     
@@ -220,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          21 字
+          2.6k 字
         
       </span>
     
@@ -231,7 +231,7 @@
         
         
         
-          1 分钟
+          22 分钟
         
       </span>
     
@@ -269,12 +269,72 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">第一篇博客</h1>
+            <h1 style="display: none">CMake</h1>
             
             
               <div class="markdown-body">
                 
-                <p>笔记存档, 便于查阅;<br>督促学习;<br>满足收集欲;</p>
+                <h1 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h1><h2 id="啥是CMake"><a href="#啥是CMake" class="headerlink" title="啥是CMake?"></a>啥是CMake?</h2><p>工程量比较大的时候手动进行链接、编译等工作十分复杂, 使用make进行批处理可以简化流程. Make使用的Makefile需要手动编写,编写这个文件有时也十分复杂, 所以CMake便出现来简化Makefile的流程.</p>
+<p>CMake可以在文件(CMakeLists.txt)中配置编译、调试等步骤的参数, 之后调用指令便不用每次都敲g++、gdb和一堆参数.</p>
+<p>VS中这一工作由IDE完成, IDE会帮你进行链接库之类的工作.</p>
+<h2 id="咋用CMake"><a href="#咋用CMake" class="headerlink" title="咋用CMake?"></a>咋用CMake?</h2><p>编写CMakeLists.txt文件</p>
+<p>在相应路径下调用cmake生成Makefile</p>
+<p>然后调用make产生可执行文件</p>
+<h2 id="常用语句"><a href="#常用语句" class="headerlink" title="常用语句"></a>常用语句</h2><p>cmake_minimum_required - 指定CMake的最小版本要求</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># CMake最小版本要求为2.8.3</span><br><span class="hljs-keyword">cmake_minimum_required</span>(VERSION <span class="hljs-number">2.8</span>.<span class="hljs-number">3</span>)<br></code></pre></td></tr></table></figure>
+
+<p>project - 定义工程名称，并可指定工程支持的语言</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 指定工程名为HELLOWORLD</span><br><span class="hljs-keyword">project</span>(HELLOWORLD)<br></code></pre></td></tr></table></figure>
+
+<p>set - 显式的定义变量</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 定义SRC变量，其值为sayhello.cpp hello.cpp</span><br><span class="hljs-keyword">set</span>(SRC sayhello.cpp hello.cpp)<br></code></pre></td></tr></table></figure>
+
+<p>include_directories - 向工程添加多个特定的头文件搜索路径 —&gt;相当于指定g++编译器的-I参数</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 将/usr/include/myincludefolder 和 ./include 添加到头文件搜索路径</span><br><span class="hljs-keyword">include_directories</span>(/usr/<span class="hljs-keyword">include</span>/myincludefolder ./<span class="hljs-keyword">include</span>)<br></code></pre></td></tr></table></figure>
+
+<p>target_include_directories-向目标添加头文件搜索路径</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">target_include_directories</span>(hello_library<br>        PUBLIC<br>        <span class="hljs-variable">$&#123;PROJECT_SOURCE_DIR&#125;</span>/<span class="hljs-keyword">include</span><br>        )<br></code></pre></td></tr></table></figure>
+
+<p>link_directories - 向工程添加多个特定的库文件搜索路径 —&gt;相当于指定g++编译器的-L参数</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 将/usr/lib/mylibfolder 和 ./lib 添加到库文件搜索路径</span><br><span class="hljs-keyword">link_directories</span>(/usr/lib/mylibfolder ./lib)<br></code></pre></td></tr></table></figure>
+
+<p>add_library - 生成库文件</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 通过变量 SRC 生成 libhello.so 共享库(STATIC静态库)</span><br><span class="hljs-keyword">add_library</span>(hello SHARED <span class="hljs-variable">$&#123;SRC&#125;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>add_compile_options - 添加编译参数</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 添加编译参数 -Wall -std=c++11 -O2</span><br><span class="hljs-keyword">add_compile_options</span>(-Wall -std=c++<span class="hljs-number">11</span> -O2)<br></code></pre></td></tr></table></figure>
+
+<p>add_executable - 生成可执行文件</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 编译main.cpp生成可执行文件main</span><br><span class="hljs-keyword">add_executable</span>(main main.cpp)<br></code></pre></td></tr></table></figure>
+
+<p>target_link_libraries - 为 target 添加需要链接的共享库 —&gt;相同于指定g++编译器-l参数</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 将hello动态库文件链接到可执行文件main</span><br><span class="hljs-keyword">target_link_libraries</span>(main hello)<br></code></pre></td></tr></table></figure>
+
+<p>add_subdirectory - 向当前工程添加存放源文件的子目录，并可以指定中间二进制和目标二进制存放的位置</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 添加src子目录，src中需有一个CMakeLists.txt</span><br><span class="hljs-keyword">add_subdirectory</span>(src)<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="常用变量"><a href="#常用变量" class="headerlink" title="常用变量"></a>常用变量</h2><p>CMAKE_CXX_FLAGS g++编译选项</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment">#在CMAKE_CXX_FLAGS编译选项后追加-std=c++11</span><br><span class="hljs-keyword">set</span>( CMAKE_CXX_FLAGS <span class="hljs-string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -std=c++11&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>CMAKE_BUILD_TYPE 编译类型(Debug, Release)</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-comment"># 设定编译类型为debug，调试时需要选择debug</span><br><span class="hljs-keyword">set</span>(CMAKE_BUILD_TYPE Debug)<br><span class="hljs-comment"># 设定编译类型为release，发布时需要选择release</span><br><span class="hljs-keyword">set</span>(CMAKE_BUILD_TYPE Release)<br></code></pre></td></tr></table></figure>
+
+<p>CMAKE_C_COMPILER：指定C编译器<br>CMAKE_CXX_COMPILER：指定C++编译器<br>EXECUTABLE_OUTPUT_PATH：可执行文件输出的存放路径<br>LIBRARY_OUTPUT_PATH：库文件输出的存放路径</p>
+<p>。。。</p>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ol>
+<li>在项目同级目录下直接cmake会在该目录下产生Makefile和一堆杂乱的文件, 这种构建方式称为内部构建, 乱! 所以一般会新建一个build文件夹存放这一堆文件, 进入该文件夹cmake .. 即可.</li>
+<li>include_directories是向整个工程添加头文件搜索路径; 而target_include_directories是为指定对象添加头文件搜索路径, 范围更小.</li>
+</ol>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs stylus">cmake-test/                 工程主目录，<span class="hljs-selector-tag">main</span><span class="hljs-selector-class">.c</span> 调用 libhello-<br>├── CMakeLists<span class="hljs-selector-class">.txt</span><br>├── include            生成 libhello-world.so，调用 <br>│   └── static               生成 libhello<span class="hljs-selector-class">.so</span> <br>│       └── hello<span class="hljs-selector-class">.h</span>         libhello<span class="hljs-selector-class">.so</span> 对外的头文件<br>├── <span class="hljs-attribute">src</span>      <br>    ├── hello<span class="hljs-selector-class">.cpp</span><br>    └── <span class="hljs-selector-tag">main</span><span class="hljs-selector-class">.cpp</span>         libworld<span class="hljs-selector-class">.so</span> 对外的头文件<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">cmake_minimum_required</span>(VERSION <span class="hljs-number">3.5</span>)<br><br><span class="hljs-keyword">project</span>(hello_library)<br><br><span class="hljs-comment"># 生成一个静态库</span><br><span class="hljs-keyword">add_library</span>(hello_library STATIC<br>        src/hello.cpp<br>        )<br>        <br><span class="hljs-comment">#设置库所需的include</span><br><span class="hljs-keyword">target_include_directories</span>(hello_library<br>        PUBLIC<br>        <span class="hljs-variable">$&#123;PROJECT_SOURCE_DIR&#125;</span>/<span class="hljs-keyword">include</span><br>        )<br><br><span class="hljs-comment"># 生成可执行文件</span><br><span class="hljs-keyword">add_executable</span>(hello_binary<br>        src/main.cpp<br>        )<br><br><span class="hljs-comment"># 链接可执行文件所需的库文件</span><br><span class="hljs-keyword">target_link_libraries</span>(hello_binary<br>        PRIVATE<br>        hello_library<br>        )<br></code></pre></td></tr></table></figure>
+
+
+
 
                 
               </div>
@@ -287,7 +347,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%9D%82%E9%A1%B9/">#杂项</a>
+        <a href="/tags/Linux-C/">#Linux C++</a>
       
     </div>
   
@@ -299,8 +359,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>第一篇博客</div>
-      <div>http://example.com/2023/04/17/my-first-blog/</div>
+      <div>CMake</div>
+      <div>http://example.com/2023/04/17/CMake/</div>
     </div>
     <div class="license-meta">
       
@@ -344,15 +404,15 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/04/17/Linux-C-%E5%BC%80%E5%8F%91/" title="G++与GDB，编译与调试">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">G++与GDB，编译与调试</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/2023/04/17/Linux-C-%E5%BC%80%E5%8F%91/" title="G++与GDB，编译与调试">
+                        <span class="hidden-mobile">G++与GDB，编译与调试</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>
