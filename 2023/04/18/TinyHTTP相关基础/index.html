@@ -1,0 +1,718 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/vanguard.jpg">
+  <link rel="icon" href="/img/vanguard.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Ruky">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="欲入门C++网络编程, 遂选择简单小巧经典的TinyHTTP项目进行学习, 顺便回顾计算机网络相关知识. 本文相关的理论知识有socket、HTTP、CGI Socket中文翻译为套接字(不明所以的翻译,感觉不如翻译成插座或者接口易于理解). 服务端与客户端相互访问的接口 TCP下使用socket的流程:  服务端和客户端初始化 socket，得到文件描述符； 服务端调用 bind，将绑定在 IP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TinyHTTP项目基础">
+<meta property="og:url" content="https://ruky0.github.io/2023/04/18/TinyHTTP%E7%9B%B8%E5%85%B3%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="Ruky&#39;s blog">
+<meta property="og:description" content="欲入门C++网络编程, 遂选择简单小巧经典的TinyHTTP项目进行学习, 顺便回顾计算机网络相关知识. 本文相关的理论知识有socket、HTTP、CGI Socket中文翻译为套接字(不明所以的翻译,感觉不如翻译成插座或者接口易于理解). 服务端与客户端相互访问的接口 TCP下使用socket的流程:  服务端和客户端初始化 socket，得到文件描述符； 服务端调用 bind，将绑定在 IP">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-18T03:00:20.000Z">
+<meta property="article:modified_time" content="2023-04-18T14:58:03.928Z">
+<meta property="article:author" content="Ruky">
+<meta property="article:tag" content="TinyHTTP">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>TinyHTTP项目基础 - Ruky&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ruky0.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Ruky&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/kamisato.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="TinyHTTP项目基础"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-04-18 11:00" pubdate>
+          2023年4月18日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          35 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">TinyHTTP项目基础</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>欲入门C++网络编程, 遂选择简单小巧经典的TinyHTTP项目进行学习, 顺便回顾计算机网络相关知识.</p>
+<p>本文相关的理论知识有socket、HTTP、CGI</p>
+<h1 id="Socket"><a href="#Socket" class="headerlink" title="Socket"></a>Socket</h1><p><em>中文翻译为套接字(不明所以的翻译,感觉不如翻译成插座或者接口易于理解).</em></p>
+<p>服务端与客户端相互访问的接口</p>
+<p>TCP下使用socket的流程:</p>
+<ol>
+<li>服务端和客户端初始化 <code>socket</code>，得到文件描述符；</li>
+<li>服务端调用 <code>bind</code>，将绑定在 IP 地址和端口;</li>
+<li>服务端调用 <code>listen</code>，进行监听；</li>
+<li>服务端调用 <code>accept</code>，等待客户端连接；</li>
+<li>客户端调用 <code>connect</code>，向服务器端的地址和端口发起连接请求；</li>
+<li>服务端 <code>accept</code> 返回用于传输的 <code>socket</code> 的文件描述符；</li>
+<li>客户端调用 <code>write</code> 写入数据；服务端调用 <code>read</code> 读取数据；</li>
+<li>客户端断开连接时，会调用 <code>close</code>，那么服务端 <code>read</code> 读取数据的时候，就会读取到了 <code>EOF</code>，待处理完数据后，服务端调用 <code>close</code>，表示连接关闭。</li>
+</ol>
+<h1 id="HTTP协议"><a href="#HTTP协议" class="headerlink" title="HTTP协议"></a>HTTP协议</h1><p><em>超文本传输协议(Hyper Text Transfer Protocol)</em></p>
+<p>超文本传输协议（HTTP）是一个用于传输超媒体文档（例如 HTML）的应用层协议。它是为 Web 浏览器与 Web 服务器之间的通信而设计的，但也可以用于其他目的。HTTP 遵循经典的客户端—服务端模型，客户端打开一个连接以发出请求，然后等待直到收到服务器端响应。HTTP 是无状态协议，这意味着服务器不会在两个请求之间保留任何数据（状态）。</p>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP">HTTP | MDN (mozilla.org)</a></p>
+<h2 id="HTTP报文"><a href="#HTTP报文" class="headerlink" title="HTTP报文"></a>HTTP报文</h2><h3 id="客户端请求消息"><a href="#客户端请求消息" class="headerlink" title="客户端请求消息"></a>客户端请求消息</h3><h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">GET</span> <span class="hljs-string">/hello.txt</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">User-Agent</span><span class="hljs-punctuation">: </span>curl/7.16.3 libcurl/7.16.3 OpenSSL/0.9.7l zlib/1.2.3<br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>www.example.com<br><span class="hljs-attribute">Accept-Language</span><span class="hljs-punctuation">: </span>en, mi<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">POST</span> <span class="hljs-string">/contact_form.php</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>developer.mozilla.org<br><span class="hljs-attribute">Content-Length</span><span class="hljs-punctuation">: </span>64<br><span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/x-www-form-urlencoded<br><br><span class="language-llvm">name<span class="hljs-operator">=</span>Joe<span class="hljs-variable">%20</span>User&amp;request<span class="hljs-operator">=</span>Send<span class="hljs-variable">%20</span>me<span class="hljs-variable">%20</span><span class="hljs-keyword">one</span><span class="hljs-variable">%20</span>of<span class="hljs-variable">%20</span>your<span class="hljs-variable">%20</span>catalogue</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="起始行"><a href="#起始行" class="headerlink" title="起始行"></a>起始行</h4><p>HTTP 请求是由客户端发出的消息，用来使服务器执行动作。<em>起始行</em>（start-line）包含三个元素：</p>
+<ol>
+<li><p>一个 *<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods">HTTP 方法</a>*，一个动词（像 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/GET"><code>GET</code></a>、<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/PUT"><code>PUT</code></a> 或者 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/POST"><code>POST</code></a>）或者一个名词（像 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/HEAD"><code>HEAD</code></a> 或者 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/OPTIONS"><code>OPTIONS</code></a>），描述要执行的动作。例如，<code>GET</code> 表示要获取资源，<code>POST</code> 表示向服务器推送数据（创建或修改资源，或者产生要返回的临时文件）。</p>
+</li>
+<li><p>请求目标</p>
+<p>（request target），通常是一个</p>
+<p>URL</p>
+<p>，或者是协议、端口和域名的绝对路径，通常以请求的环境为特征。请求的格式因不同的 HTTP 方法而异。它可以是：</p>
+<ul>
+<li><p>一个绝对路径，末尾跟上一个<code>?</code>和查询字符串。这是最常见的形式，称为原始形式（origin form），被<code>GET</code> <code>POST</code> <code>HEAD</code>和<code>OPTIONS</code>方法所使用。</p>
+<ul>
+<li><code>POST / HTTP/1.1</code></li>
+<li><code>GET /background.png HTTP/1.0</code></li>
+<li><code>HEAD /test.html?query=alibaba HTTP/1.1</code></li>
+<li><code>OPTIONS /anypage.html HTTP/1.0</code></li>
+</ul>
+</li>
+<li><p>一个完整的 URL，被称为<em>绝对形式</em>（absolute form），主要在使用 <code>GET</code> 方法连接到代理时使用。<code>GET http://developer.mozilla.org/en-US/docs/Web/HTTP/Messages HTTP/1.1</code></p>
+</li>
+<li><p>由域名和可选端口（以 <code>&#39;:&#39;</code> 为前缀）组成的 URL 的 authority 部分，称为 <em>authority form</em>。仅在使用 <code>CONNECT</code> 建立 HTTP 隧道时才使用。<code>CONNECT developer.mozilla.org:80 HTTP/1.1</code></p>
+</li>
+<li><p><em>星号形式</em>（asterisk form），一个简单的星号（<code>&#39;*&#39;</code>），配合 <code>OPTIONS</code> 方法使用，代表整个服务器。<code>OPTIONS * HTTP/1.1</code></p>
+</li>
+</ul>
+</li>
+<li><p><em>HTTP 版本</em>（HTTP version），定义了剩余消息的结构，作为对期望的响应版本的指示符。</p>
+</li>
+</ol>
+<h4 id="标头（Header）"><a href="#标头（Header）" class="headerlink" title="标头（Header）"></a>标头（Header）</h4><p>来自请求的 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers">HTTP 标头</a>遵循和 HTTP 标头相同的基本结构：不区分大小写的字符串，紧跟着的冒号（<code>&#39;:&#39;</code>）和一个结构取决于标头的值。整个标头（包括值）由一行组成，这一行可以相当长。</p>
+<p>有许多请求标头可用，它们可以分为几组：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Glossary/General_header">通用标头（General header）</a>，例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Via"><code>Via</code></a>，适用于整个消息。</li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Glossary/Request_header">请求标头（Request header）</a>，例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/User-Agent"><code>User-Agent</code></a>、<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Accept-Type"><code>Accept-Type</code></a>，通过进一步的定义（例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Accept-Language"><code>Accept-Language</code></a>）、给定上下文（例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Referer"><code>Referer</code></a>）或者进行有条件的限制（例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/If-None"><code>If-None</code></a>）来修改请求。</li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Glossary/Representation_header">表示标头（Representation header）</a>，例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type"><code>Content-Type</code></a> 描述了消息数据的原始格式和应用的任意编码（仅在消息有主体时才存在）。</li>
+</ul>
+<h4 id="主体（Body）"><a href="#主体（Body）" class="headerlink" title="主体（Body）"></a>主体（Body）</h4><p>所有的请求都有一个主体：例如获取资源的请求，像 <code>GET</code>、<code>HEAD</code>、<code>DELETE</code> 和 <code>OPTIONS</code>，通常它们不需要主体。有些请求将数据发送到服务器以便更新数据：常见的的情况是 POST 请求（包含 HTML 表单数据）。</p>
+<p>主体大致可分为两类：</p>
+<ul>
+<li>单一资源（Single-resource）主体，由一个单文件组成。该类型的主体由两个标头定义：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type"><code>Content-Type</code></a> 和 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Length"><code>Content-Length</code></a>。</li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types#multipartform-data">多资源（Multiple-resource）主体</a>，由多部分主体组成，每一部分包含不同的信息位。通常是和 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Learn/Forms">HTML 表单</a>连系在一起。</li>
+</ul>
+<h3 id="服务端响应消息"><a href="#服务端响应消息" class="headerlink" title="服务端响应消息"></a>服务端响应消息</h3><h4 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h4><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-meta">HTTP/1.1</span> <span class="hljs-number">200</span> OK<br><span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>text/html; charset=utf-8<br><span class="hljs-attribute">Content-Length</span><span class="hljs-punctuation">: </span>55743<br><span class="hljs-attribute">Connection</span><span class="hljs-punctuation">: </span>keep-alive<br><span class="hljs-attribute">Cache-Control</span><span class="hljs-punctuation">: </span>s-maxage=300, public, max-age=0<br><span class="hljs-attribute">Content-Language</span><span class="hljs-punctuation">: </span>en-US<br><span class="hljs-attribute">Date</span><span class="hljs-punctuation">: </span>Thu, 06 Dec 2018 17:37:18 GMT<br><span class="hljs-attribute">ETag</span><span class="hljs-punctuation">: </span>&quot;2e77ad1dc6ab0b53a2996dfd4653c1c3&quot;<br><span class="hljs-attribute">Server</span><span class="hljs-punctuation">: </span>meinheld/0.6.1<br><span class="hljs-attribute">Strict-Transport-Security</span><span class="hljs-punctuation">: </span>max-age=63072000<br><span class="hljs-attribute">X-Content-Type-Options</span><span class="hljs-punctuation">: </span>nosniff<br><span class="hljs-attribute">X-Frame-Options</span><span class="hljs-punctuation">: </span>DENY<br><span class="hljs-attribute">X-XSS-Protection</span><span class="hljs-punctuation">: </span>1; mode=block<br><span class="hljs-attribute">Vary</span><span class="hljs-punctuation">: </span>Accept-Encoding,Cookie<br><span class="hljs-attribute">Age</span><span class="hljs-punctuation">: </span>7<br><br><span class="language-xml"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><br><span class="language-xml">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="language-xml">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>A simple webpage<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><br><span class="language-xml">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Simple HTML webpage<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><br><span class="language-xml">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Hello, world!<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span><br></code></pre></td></tr></table></figure>
+
+<h4 id="状态行"><a href="#状态行" class="headerlink" title="状态行"></a>状态行</h4><p>HTTP 响应的起始行被称作<em>状态行</em>（status line），包含以下信息：</p>
+<ol>
+<li><em>协议版本</em>，通常为 <code>HTTP/1.1</code>。</li>
+<li><em>状态码</em>（status code），表明请求是成功或失败。常见的状态码是 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status/200"><code>200</code></a>、<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status/404"><code>404</code></a> 或 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status/302"><code>302</code></a>。</li>
+<li><em>状态文本</em>（status text）。一个简短的，纯粹的信息，通过状态码的文本描述，帮助人们理解该 HTTP 消息。</li>
+</ol>
+<p>一个典型的状态行看起来像这样：<code>HTTP/1.1 404 Not Found</code>。</p>
+<h4 id="标头（Header）-1"><a href="#标头（Header）-1" class="headerlink" title="标头（Header）"></a>标头（Header）</h4><p>响应的 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers">HTTP 标头</a>遵循和任何其他标头相同的结构：不区分大小写的字符串，紧跟着的冒号（<code>&#39;:&#39;</code>）和一个结构取决于标头类型的值。整个标头（包括其值）表现为单行形式。</p>
+<p>许多不同的标头可能会出现在响应中。这些可以分为几组：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Glossary/General_header">通用标头（General header）</a>，例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Via"><code>Via</code></a>，适用于整个消息。</li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Glossary/Response_header">响应标头（Response header）</a>，例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Vary"><code>Vary</code></a> 和 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Accept-Ranges"><code>Accept-Ranges</code></a>，提供有关服务器的其他信息，这些信息不适合状态行。</li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Glossary/Representation_header">表示标头（Representation header）</a>，例如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type"><code>Content-Type</code></a> 描述了消息数据的原始格式和应用的任意编码（仅在消息有主体时才存在）。</li>
+</ul>
+<h4 id="主体（Body）-1"><a href="#主体（Body）-1" class="headerlink" title="主体（Body）"></a>主体（Body）</h4><p>响应的最后一部分是主体。不是所有的响应都有主体：具有状态码（如 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status/201"><code>201</code></a> 或 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status/204"><code>204</code></a>）的响应，通常不会有主体。</p>
+<p>主体大致可分为三类：</p>
+<ul>
+<li>单资源（Single-resource）主体，由<strong>已知</strong>长度的单个文件组成。该类型主体由两个标头定义：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type"><code>Content-Type</code></a> 和 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Length"><code>Content-Length</code></a>。</li>
+<li>单资源（Single-resource）主体，由<strong>未知</strong>长度的单个文件组成。通过将 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Transfer-Encoding"><code>Transfer-Encoding</code></a> 设置为 <code>chunked</code> 来使用分块编码。</li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types#multipartform-data">多资源（Multiple-resource）主体</a>，由多部分 body 组成，每部分包含不同的信息段。但这是比较少见的。</li>
+</ul>
+<h2 id="HTTP方法"><a href="#HTTP方法" class="headerlink" title="HTTP方法"></a>HTTP方法</h2><p>最常用的有POST和GET.</p>
+<p>GET 方法请求一个指定资源的表示形式，使用 GET 的请求应该只被用于获取数据.</p>
+<p>POST 方法用于将实体提交到指定的资源，通常导致在服务器上的状态变化或副作用.</p>
+<h1 id="CGI"><a href="#CGI" class="headerlink" title="CGI"></a>CGI</h1><p><em>Common Gateway Interface, 通用网关接口</em></p>
+<p>个人理解cgi为服务器上的一个可执行程序,可以被来自客户端的HTTP请求调用, 服务器接收请求并把这个请求给cgi处理, cgi处理完成后传给服务器,服务器再传给用户.</p>
+<p>本项目中使用的是Perl编写的CGI.</p>
+<p>POST方法往往会调用CGI.</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/TinyHTTP/">#TinyHTTP</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>TinyHTTP项目基础</div>
+      <div>https://ruky0.github.io/2023/04/18/TinyHTTP相关基础/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Ruky</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年4月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/04/18/TinyHTTP%E6%A6%82%E8%BF%B0/" title="TinyHTTP概述">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">TinyHTTP概述</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/04/17/CMake/" title="CMake">
+                        <span class="hidden-mobile">CMake</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
