@@ -16,22 +16,22 @@
   <meta name="author" content="Ruky">
   <meta name="keywords" content="">
   
-    <meta name="description" content="TinyHTTP是一个1999年的小项目, 五百多行代码写明了使用C&#x2F;C++进行网络编程的基本流程, 非常适合入门. 本文将从TinyHTTP要干什么, 怎么干成的, 以及如何运行TinyHTTP几个方面进行阐述. TinyHTTP的目标 实现一个多线程的服务器, 时刻监听请求, 每接收到一个新的请求便会新建一个进程处理该请求. 分析HTTP请求报文, 分辨是GET还是POST(仅实现这">
+    <meta name="description" content="TinyHTTP中的main函数以及start_up函数阅读笔记. main函数初始化服务端、阻塞等待连接、处理请求、关闭服务端 1234567891011121314151617181920212223242526272829303132333435int main(void)&amp;#123; int server_sock &#x3D; -1; u_short port &#x3D; 0;&#x2F;&#x2F;端口号为0时是随机的、系">
 <meta property="og:type" content="article">
-<meta property="og:title" content="TinyHTTP概述">
-<meta property="og:url" content="https://ruky0.github.io/2023/04/18/TinyHTTP%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:title" content="TinyHTTP源码阅读笔记(一)">
+<meta property="og:url" content="https://ruky0.github.io/2023/04/19/TinyHTTP%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-%E4%B8%80/index.html">
 <meta property="og:site_name" content="Ruky&#39;s blog">
-<meta property="og:description" content="TinyHTTP是一个1999年的小项目, 五百多行代码写明了使用C&#x2F;C++进行网络编程的基本流程, 非常适合入门. 本文将从TinyHTTP要干什么, 怎么干成的, 以及如何运行TinyHTTP几个方面进行阐述. TinyHTTP的目标 实现一个多线程的服务器, 时刻监听请求, 每接收到一个新的请求便会新建一个进程处理该请求. 分析HTTP请求报文, 分辨是GET还是POST(仅实现这">
+<meta property="og:description" content="TinyHTTP中的main函数以及start_up函数阅读笔记. main函数初始化服务端、阻塞等待连接、处理请求、关闭服务端 1234567891011121314151617181920212223242526272829303132333435int main(void)&amp;#123; int server_sock &#x3D; -1; u_short port &#x3D; 0;&#x2F;&#x2F;端口号为0时是随机的、系">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2023-04-18T14:58:41.000Z">
-<meta property="article:modified_time" content="2023-04-19T08:49:23.308Z">
+<meta property="article:published_time" content="2023-04-19T09:12:02.000Z">
+<meta property="article:modified_time" content="2023-04-20T16:02:20.330Z">
 <meta property="article:author" content="Ruky">
 <meta property="article:tag" content="TinyHTTP">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>TinyHTTP概述 - Ruky&#39;s blog</title>
+  <title>TinyHTTP源码阅读笔记(一) - Ruky&#39;s blog</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -197,7 +197,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="TinyHTTP概述"></span>
+            <span id="subtitle" data-typed-text="TinyHTTP源码阅读笔记(一)"></span>
           
         </div>
 
@@ -208,8 +208,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-04-18 22:58" pubdate>
-          2023年4月18日 晚上
+        <time datetime="2023-04-19 17:12" pubdate>
+          2023年4月19日 下午
         </time>
       </span>
     
@@ -220,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.8k 字
+          2.8k 字
         
       </span>
     
@@ -231,7 +231,7 @@
         
         
         
-          15 分钟
+          24 分钟
         
       </span>
     
@@ -269,63 +269,36 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">TinyHTTP概述</h1>
+            <h1 style="display: none">TinyHTTP源码阅读笔记(一)</h1>
             
             
               <div class="markdown-body">
                 
-                <p>TinyHTTP是一个1999年的小项目, 五百多行代码写明了使用C&#x2F;C++进行网络编程的基本流程, 非常适合入门. 本文将从TinyHTTP要干什么, 怎么干成的, 以及如何运行TinyHTTP几个方面进行阐述.</p>
-<h1 id="TinyHTTP的目标"><a href="#TinyHTTP的目标" class="headerlink" title="TinyHTTP的目标"></a>TinyHTTP的目标</h1><ol>
-<li>实现一个多线程的服务器, 时刻监听请求, 每接收到一个新的请求便会新建一个进程处理该请求.</li>
-<li>分析HTTP请求报文, 分辨是GET还是POST(仅实现这两种较为典型的方法).</li>
-<li>根据方法的不同从报文中读出相关参数, 根据参数进行应答.</li>
-<li>具体功能为根据用户输入的颜色改变显示的背景颜色, 该功能由一个CGI实现. </li>
-<li>错误消息处理.</li>
-</ol>
-<h2 id="TinyHTTP的工作流程"><a href="#TinyHTTP的工作流程" class="headerlink" title="TinyHTTP的工作流程"></a>TinyHTTP的工作流程</h2><ol>
-<li><p>服务器启动，在指定端口或随机选取端口绑定 httpd 服务。</p>
+                <p>TinyHTTP中的main函数以及start_up函数阅读笔记.</p>
+<h1 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h1><p>初始化服务端、阻塞等待连接、处理请求、关闭服务端</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br> <span class="hljs-type">int</span> server_sock = <span class="hljs-number">-1</span>;<br> u_short port = <span class="hljs-number">0</span>;<span class="hljs-comment">//端口号为0时是随机的、系统指定的端口</span><br> <span class="hljs-type">int</span> client_sock = <span class="hljs-number">-1</span>;<br> <span class="hljs-comment">//sockaddr_in 是 IPV4的套接字地址结构, 存储了端口</span><br> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sockaddr_in</span> <span class="hljs-title">client_name</span>;</span><br> <span class="hljs-type">int</span> client_name_len = <span class="hljs-keyword">sizeof</span>(client_name);<br> <span class="hljs-comment">//pthread_t newthread;</span><br><br><span class="hljs-comment">//建立服务器监听</span><br> server_sock = startup(&amp;port);<br> <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;httpd running on port %d\n&quot;</span>, port);<br><br> <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>)<br> &#123;<br>  <span class="hljs-comment">//阻塞等待客户端的连接，参读《TLPI》P1157，</span><br>  <span class="hljs-comment">//等待连接建立，返回一个客户端连接符存入client_name</span><br>  client_sock = accept(server_sock,<br>                       (<span class="hljs-keyword">struct</span> sockaddr *)&amp;client_name,<br>                       &amp;client_name_len);<br>  <span class="hljs-keyword">if</span> (client_sock == <span class="hljs-number">-1</span>)<br>  	error_die(<span class="hljs-string">&quot;accept&quot;</span>);<span class="hljs-comment">//出错了</span><br>     <br>  accept_request(client_sock);<span class="hljs-comment">//处理请求</span><br><br>  <span class="hljs-comment">//新建一个线程，处理这个客户的连接</span><br> <span class="hljs-comment">/*if (pthread_create(&amp;newthread , NULL, accept_request, client_sock) != 0)</span><br><span class="hljs-comment">   perror(&quot;pthread_create&quot;);*/</span><br> &#125;<br><br> close(server_sock);<br><br> <span class="hljs-keyword">return</span>(<span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="start-up函数"><a href="#start-up函数" class="headerlink" title="start_up函数"></a>start_up函数</h1><p>初始化socket、绑定socket和端口、获取端口号、建立监听</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">startup</span><span class="hljs-params">(u_short *port)</span><br>&#123; <br> <span class="hljs-comment">//建立一个socket描述符</span><br> <span class="hljs-type">int</span> httpd = <span class="hljs-number">0</span>;<br> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sockaddr_in</span> <span class="hljs-title">name</span>;</span><br> <br> <span class="hljs-comment">//socket()用于创建一个用于 socket 的描述符</span><br> <span class="hljs-comment">//这里的PF_INET其实是与 AF_INET同义，具体可以参读《TLPI》P946</span><br> httpd = socket(PF_INET, SOCK_STREAM, <span class="hljs-number">0</span>);<br> <span class="hljs-keyword">if</span> (httpd == <span class="hljs-number">-1</span>)<br>  error_die(<span class="hljs-string">&quot;socket&quot;</span>);<br>  <br> <span class="hljs-built_in">memset</span>(&amp;name, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(name));<span class="hljs-comment">//将name结构体使用memset全部初始化为一。（清零）</span><br><br> <span class="hljs-comment">//设置服务器监听元素</span><br> name.sin_family = AF_INET;<span class="hljs-comment">//socket族</span><br> <span class="hljs-comment">//htons()，ntohs() 和 htonl()包含于&lt;arpa/inet.h&gt;, 参读《TLPI》P1199</span><br> <span class="hljs-comment">//将*port 转换成以网络字节序表示的16位整数</span><br> <span class="hljs-comment">//这个与大端小端有关</span><br> name.sin_port = htons(*port);<span class="hljs-comment">//端口</span><br>    <br> <span class="hljs-comment">//INADDR_ANY是一个 IPV4通配地址的常量，包含于&lt;netinet/in.h&gt;</span><br> <span class="hljs-comment">//大多实现都将其定义成了0.0.0.0 参读《TLPI》P1187</span><br> name.sin_addr.s_addr = htonl(INADDR_ANY);<span class="hljs-comment">//可接受的地址，此处为任意地址</span><br> <br> <span class="hljs-comment">//将描述符与socket结构体进行绑定</span><br> <span class="hljs-comment">//bind()用于绑定地址与 socket。参读《TLPI》P1153</span><br> <span class="hljs-comment">//如果传进去的sockaddr结构中的 sin_port 指定为0，这时系统会选择一个临时的端口号</span><br> <span class="hljs-keyword">if</span> (bind(httpd, (<span class="hljs-keyword">struct</span> sockaddr *)&amp;name, <span class="hljs-keyword">sizeof</span>(name)) &lt; <span class="hljs-number">0</span>)<br>  error_die(<span class="hljs-string">&quot;bind&quot;</span>);<br>  <br> <span class="hljs-comment">//如果传进来的port是零，说明需要系统随机分配port，需要手动获取</span><br> <span class="hljs-keyword">if</span> (*port == <span class="hljs-number">0</span>)  <span class="hljs-comment">/* if dynamically allocating a port */</span><br> &#123;<br>  <span class="hljs-type">int</span> namelen = <span class="hljs-keyword">sizeof</span>(name);<br>  <span class="hljs-comment">//getsockname()包含于&lt;sys/socker.h&gt;中，参读《TLPI》P1263</span><br>  <span class="hljs-comment">//调用getsockname()获取系统给 httpd 这个 socket 随机分配的端口号</span><br>  <span class="hljs-keyword">if</span> (getsockname(httpd, (<span class="hljs-keyword">struct</span> sockaddr *)&amp;name, &amp;namelen) == <span class="hljs-number">-1</span>)<br>   error_die(<span class="hljs-string">&quot;getsockname&quot;</span>);<br>  *port = ntohs(name.sin_port);<br>     <br>  <span class="hljs-comment">//建立监听，最大连接数为5，返回-1说明超了或者有错</span><br>  <span class="hljs-keyword">if</span> (listen(httpd, <span class="hljs-number">5</span>) &lt; <span class="hljs-number">0</span>) <br>  	error_die(<span class="hljs-string">&quot;listen&quot;</span>);<br> <span class="hljs-keyword">return</span>(httpd);<span class="hljs-comment">//返回设置好的服务端socket标识符</span><br>&#125;<br> &#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h1><ol>
+<li><p>为啥要使用随机分配的端口号? 手动设置用起来不方便嘛?</p>
+<p>手动设置的端口号不知道有无占用; 随机分配端口重启server时不用等待两个msl（Maximum Segment Lifetime，报文最大生存时间）（即虽然服务器程序关闭，连接终止，但是端口会等待2MSL的时间, 为保证数据完整送达.）</p>
 </li>
-<li><p>收到一个 HTTP 请求时（其实就是 listen 的端口 accpet 的时候），派生一个线程运行 accept_request 函数。</p>
+<li><p>上面说要等2个MSL才能释放资源, 为啥?</p>
+<p>TCP的四次挥手, 服务端在向客户端发送最后一个ACK后不知道客户端有没有收到. 如果客户端没收到, 则客户端会超时重传, 此时要多等2个MSL才能再次收到重传. 所以服务端要多等2个MSL才能安心睡去.</p>
 </li>
-<li><p>取出 HTTP 请求中的 method (GET 或 POST) 和 url,。对于 GET 方法，如果有携带参数，则 query_string 指针指向 url 中 ？ 后面的 GET 参数。</p>
-</li>
-<li><p>格式化 url 到 path 数组，表示浏览器请求的服务器文件路径，在 tinyhttpd 中服务器文件是在 htdocs 文件夹下。当 url 以 &#x2F; 结尾，或 url 是个目录，则默认在 path 中加上 index.html，表示访问主页。</p>
-</li>
-<li><p>如果文件路径合法，对于无参数的 GET 请求，直接输出服务器文件到浏览器，即用 HTTP 格式写到套接字上，跳到（10）。其他情况（带参数 GET，POST 方式，url 为可执行文件），则调用 excute_cgi 函数执行 cgi 脚本。</p>
-</li>
-<li><p>读取整个 HTTP 请求并丢弃，如果是 POST 则找出 Content-Length. 把 HTTP 200  状态码写到套接字。</p>
-</li>
-<li><p>建立两个管道，cgi_input 和 cgi_output, 并 fork 一个进程。</p>
-</li>
-<li><p>在子进程中，把 STDOUT 重定向到 cgi_outputt 的写入端，把 STDIN 重定向到 cgi_input 的读取端，关闭 cgi_input 的写入端 和 cgi_output 的读取端，设置 request_method 的环境变量，GET 的话设置 query_string 的环境变量，POST 的话设置 content_length 的环境变量，这些环境变量都是为了给 cgi 脚本调用，接着用 execl 运行 cgi 程序。</p>
-</li>
-<li><p>在父进程中，关闭 cgi_input 的读取端 和 cgi_output 的写入端，如果 POST 的话，把 POST 数据写入 cgi_input，已被重定向到 STDIN，读取 cgi_output 的管道输出到客户端，该管道输入是 STDOUT。接着关闭所有管道，等待子进程结束。</p>
+<li><p>为什么要使用多线程而不使用多进程?(此处代码将多线程部分注释掉了, 只能阻塞接收一个客户端的消息)</p>
+<p>HTTP协议一次请求只对应一次响应, 每次处理不需要复杂逻辑, 线程就够用了, 新开一个进程就是杀鸡用牛刀.</p>
 </li>
 </ol>
-<h2 id="TinyHTTP运行时注意事项"><a href="#TinyHTTP运行时注意事项" class="headerlink" title="TinyHTTP运行时注意事项"></a>TinyHTTP运行时注意事项</h2><p><em>总之先跑起来, 有助于理解整个项目</em></p>
-<ol>
-<li><p>Linux环境下注意删掉相关不兼容语句</p>
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs markdown">To compile for Linux:<br> 1) Comment out the #include <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">pthread.h</span>&gt;</span></span> line.<br> 2) Comment out the line that defines the variable newthread.<br> 3) Comment out the two lines that run pthread<span class="hljs-emphasis">_create().</span><br><span class="hljs-emphasis"> 4) Uncomment the line that runs accept_</span>request().<br> 5) Remove -lsocket from the Makefile.<br></code></pre></td></tr></table></figure>
+<h1 id="用到的库函数、定义等"><a href="#用到的库函数、定义等" class="headerlink" title="用到的库函数、定义等"></a>用到的库函数、定义等</h1><ol>
+<li><p>sockaddr_in结构体</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sockaddr_in</span> &#123;</span><br>	<span class="hljs-type">short</span> <span class="hljs-type">int</span> sin_family;           <span class="hljs-comment">/* Address family */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span> sin_port;    <span class="hljs-comment">/* Port number */</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">in_addr</span> <span class="hljs-title">sin_addr</span>;</span>        <span class="hljs-comment">/* Internet address */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> sin_zero[<span class="hljs-number">8</span>];      <span class="hljs-comment">/* Same size as struct sockaddr */</span><br>&#125;;<br></code></pre></td></tr></table></figure>
 </li>
-<li><p>安装Perl-cgi</p>
-<p>Perl在Ubuntu上已默认安装</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">perl -MCPAN -e shell<br>(cpan)install CGI.pm<br>perl -MCGI -e &#x27;print &quot;CGI.pm version $CGI::VERSION\n&quot;;&#x27;# 检查是否安装成功<br></code></pre></td></tr></table></figure>
+<li><p>htonl(), htons()</p>
 </li>
-<li><p>修改color.cgi和check.cgi文件</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">which perl #查找一下perl路径<br></code></pre></td></tr></table></figure>
-
-<p>将上述两文件第一句改成<code>#!+perl路径 -Tw</code>, 如:</p>
-<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs perl"><span class="hljs-comment">#!/usr/bin/perl -Tw</span><br></code></pre></td></tr></table></figure>
-</li>
-<li><p>设置文件权限</p>
-<p>在这步卡了很久,不搞这步能成功链接但是浏览器页面上一篇空白</p>
-<p>在<code>htdocs</code>路径下修改<code>index.html</code>访问权限为不可执行</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo chmod 600 index.html<br></code></pre></td></tr></table></figure>
-
-<p>同时要保证两个cgi可以执行,否则输入颜色后一片空白</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo chmod 777 color.cgi<br></code></pre></td></tr></table></figure>
-</li>
-<li><p>上述工作搞完之后直接make出可执行文件运行, 使用浏览器访问对应端口即可.</p>
+<li><p>AF_INET</p>
 </li>
 </ol>
 
@@ -352,8 +325,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>TinyHTTP概述</div>
-      <div>https://ruky0.github.io/2023/04/18/TinyHTTP概述/</div>
+      <div>TinyHTTP源码阅读笔记(一)</div>
+      <div>https://ruky0.github.io/2023/04/19/TinyHTTP源码阅读笔记-一/</div>
     </div>
     <div class="license-meta">
       
@@ -365,7 +338,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年4月18日</div>
+          <div>2023年4月19日</div>
         </div>
       
       
@@ -397,18 +370,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/04/19/VSCode%E4%B8%ADlaunch-json-tasks-json-settings-json%E6%98%AF%E5%B9%B2%E4%BB%80%E4%B9%88%E7%9A%84/" title="VSCode中launch.json/tasks.json/settings.json是干什么的?">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">VSCode中launch.json/tasks.json/settings.json是干什么的?</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/04/18/TinyHTTP%E7%9B%B8%E5%85%B3%E5%9F%BA%E7%A1%80/" title="TinyHTTP项目基础">
-                        <span class="hidden-mobile">TinyHTTP项目基础</span>
+                      <a href="/2023/04/19/VSCode%E4%B8%ADlaunch-json-tasks-json-settings-json%E6%98%AF%E5%B9%B2%E4%BB%80%E4%B9%88%E7%9A%84/" title="VSCode中launch.json/tasks.json/settings.json是干什么的?">
+                        <span class="hidden-mobile">VSCode中launch.json/tasks.json/settings.json是干什么的?</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
