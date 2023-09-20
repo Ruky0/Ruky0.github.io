@@ -1,0 +1,696 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/vanguard.jpg">
+  <link rel="icon" href="/img/vanguard.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Ruky">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="TinyHTTP中的main函数以及start_up函数阅读笔记. main函数初始化服务端、阻塞等待连接、处理请求、关闭服务端 1234567891011121314151617181920212223242526272829303132333435int main(void)&amp;#123; int server_sock &#x3D; -1; u_short port &#x3D; 0;&#x2F;&#x2F;端口号为0时是随机的、系">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TinyHTTP源码阅读笔记(一)">
+<meta property="og:url" content="https://ruky0.github.io/2023/04/19/TinyHTTP%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-%E4%B8%80/index.html">
+<meta property="og:site_name" content="Ruky&#39;s blog">
+<meta property="og:description" content="TinyHTTP中的main函数以及start_up函数阅读笔记. main函数初始化服务端、阻塞等待连接、处理请求、关闭服务端 1234567891011121314151617181920212223242526272829303132333435int main(void)&amp;#123; int server_sock &#x3D; -1; u_short port &#x3D; 0;&#x2F;&#x2F;端口号为0时是随机的、系">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-19T09:12:02.000Z">
+<meta property="article:modified_time" content="2023-09-20T14:36:24.718Z">
+<meta property="article:author" content="Ruky">
+<meta property="article:tag" content="TinyHTTP">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>TinyHTTP源码阅读笔记(一) - Ruky&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ruky0.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Ruky&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/kamisato.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="TinyHTTP源码阅读笔记(一)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-04-19 17:12" pubdate>
+          2023年4月19日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          40 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">TinyHTTP源码阅读笔记(一)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>TinyHTTP中的main函数以及start_up函数阅读笔记.</p>
+<h1 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h1><p>初始化服务端、阻塞等待连接、处理请求、关闭服务端</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line"> <span class="type">int</span> server_sock = <span class="number">-1</span>;</span><br><span class="line"> u_short port = <span class="number">0</span>;<span class="comment">//端口号为0时是随机的、系统指定的端口</span></span><br><span class="line"> <span class="type">int</span> client_sock = <span class="number">-1</span>;</span><br><span class="line"> <span class="comment">//sockaddr_in 是 IPV4的套接字地址结构, 存储了端口</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">client_name</span>;</span></span><br><span class="line"> <span class="type">int</span> client_name_len = <span class="keyword">sizeof</span>(client_name);</span><br><span class="line"> <span class="comment">//pthread_t newthread;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//建立服务器监听</span></span><br><span class="line"> server_sock = startup(&amp;port);</span><br><span class="line"> <span class="built_in">printf</span>(<span class="string">&quot;httpd running on port %d\n&quot;</span>, port);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line"> &#123;</span><br><span class="line">  <span class="comment">//阻塞等待客户端的连接，参读《TLPI》P1157，</span></span><br><span class="line">  <span class="comment">//等待连接建立，返回一个客户端连接符存入client_name</span></span><br><span class="line">  client_sock = accept(server_sock,</span><br><span class="line">                       (<span class="keyword">struct</span> sockaddr *)&amp;client_name,</span><br><span class="line">                       &amp;client_name_len);</span><br><span class="line">  <span class="keyword">if</span> (client_sock == <span class="number">-1</span>)</span><br><span class="line">  	error_die(<span class="string">&quot;accept&quot;</span>);<span class="comment">//出错了</span></span><br><span class="line">     </span><br><span class="line">  accept_request(client_sock);<span class="comment">//处理请求</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">//新建一个线程，处理这个客户的连接</span></span><br><span class="line"> <span class="comment">/*if (pthread_create(&amp;newthread , NULL, accept_request, client_sock) != 0)</span></span><br><span class="line"><span class="comment">   perror(&quot;pthread_create&quot;);*/</span></span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> close(server_sock);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">return</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="start-up函数"><a href="#start-up函数" class="headerlink" title="start_up函数"></a>start_up函数</h1><p>初始化socket、绑定socket和端口、获取端口号、建立监听</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">startup</span><span class="params">(u_short *port)</span></span><br><span class="line">&#123; </span><br><span class="line"> <span class="comment">//建立一个socket描述符</span></span><br><span class="line"> <span class="type">int</span> httpd = <span class="number">0</span>;</span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">name</span>;</span></span><br><span class="line"> </span><br><span class="line"> <span class="comment">//socket()用于创建一个用于 socket 的描述符</span></span><br><span class="line"> <span class="comment">//这里的PF_INET其实是与 AF_INET同义，具体可以参读《TLPI》P946</span></span><br><span class="line"> httpd = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"> <span class="keyword">if</span> (httpd == <span class="number">-1</span>)</span><br><span class="line">  error_die(<span class="string">&quot;socket&quot;</span>);</span><br><span class="line">  </span><br><span class="line"> <span class="built_in">memset</span>(&amp;name, <span class="number">0</span>, <span class="keyword">sizeof</span>(name));<span class="comment">//将name结构体使用memset全部初始化为一。（清零）</span></span><br><span class="line"></span><br><span class="line"> <span class="comment">//设置服务器监听元素</span></span><br><span class="line"> name.sin_family = AF_INET;<span class="comment">//socket族</span></span><br><span class="line"> <span class="comment">//htons()，ntohs() 和 htonl()包含于&lt;arpa/inet.h&gt;, 参读《TLPI》P1199</span></span><br><span class="line"> <span class="comment">//将*port 转换成以网络字节序表示的16位整数</span></span><br><span class="line"> <span class="comment">//这个与大端小端有关</span></span><br><span class="line"> name.sin_port = htons(*port);<span class="comment">//端口</span></span><br><span class="line">    </span><br><span class="line"> <span class="comment">//INADDR_ANY是一个 IPV4通配地址的常量，包含于&lt;netinet/in.h&gt;</span></span><br><span class="line"> <span class="comment">//大多实现都将其定义成了0.0.0.0 参读《TLPI》P1187</span></span><br><span class="line"> name.sin_addr.s_addr = htonl(INADDR_ANY);<span class="comment">//可接受的地址，此处为任意地址</span></span><br><span class="line"> </span><br><span class="line"> <span class="comment">//将描述符与socket结构体进行绑定</span></span><br><span class="line"> <span class="comment">//bind()用于绑定地址与 socket。参读《TLPI》P1153</span></span><br><span class="line"> <span class="comment">//如果传进去的sockaddr结构中的 sin_port 指定为0，这时系统会选择一个临时的端口号</span></span><br><span class="line"> <span class="keyword">if</span> (bind(httpd, (<span class="keyword">struct</span> sockaddr *)&amp;name, <span class="keyword">sizeof</span>(name)) &lt; <span class="number">0</span>)</span><br><span class="line">  error_die(<span class="string">&quot;bind&quot;</span>);</span><br><span class="line">  </span><br><span class="line"> <span class="comment">//如果传进来的port是零，说明需要系统随机分配port，需要手动获取</span></span><br><span class="line"> <span class="keyword">if</span> (*port == <span class="number">0</span>)  <span class="comment">/* if dynamically allocating a port */</span></span><br><span class="line"> &#123;</span><br><span class="line">  <span class="type">int</span> namelen = <span class="keyword">sizeof</span>(name);</span><br><span class="line">  <span class="comment">//getsockname()包含于&lt;sys/socker.h&gt;中，参读《TLPI》P1263</span></span><br><span class="line">  <span class="comment">//调用getsockname()获取系统给 httpd 这个 socket 随机分配的端口号</span></span><br><span class="line">  <span class="keyword">if</span> (getsockname(httpd, (<span class="keyword">struct</span> sockaddr *)&amp;name, &amp;namelen) == <span class="number">-1</span>)</span><br><span class="line">   error_die(<span class="string">&quot;getsockname&quot;</span>);</span><br><span class="line">  *port = ntohs(name.sin_port);</span><br><span class="line"> &#125;  </span><br><span class="line">  <span class="comment">//建立监听，最大连接数为5，返回-1说明超了或者有错</span></span><br><span class="line">  <span class="keyword">if</span> (listen(httpd, <span class="number">5</span>) &lt; <span class="number">0</span>) </span><br><span class="line">  	error_die(<span class="string">&quot;listen&quot;</span>);</span><br><span class="line"> <span class="keyword">return</span>(httpd);<span class="comment">//返回设置好的服务端socket标识符</span></span><br><span class="line"></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h1><ol>
+<li><p>为啥要使用随机分配的端口号? 手动设置用起来不方便嘛?</p>
+<p>手动设置的端口号不知道有无占用; 随机分配端口重启server时不用等待两个msl（Maximum Segment Lifetime，报文最大生存时间）（即虽然服务器程序关闭，连接终止，但是端口会等待2MSL的时间, 为保证数据完整送达.）</p>
+</li>
+<li><p>上面说要等2个MSL才能释放资源, 为啥?</p>
+<p>TCP的四次挥手, 服务端在向客户端发送最后一个ACK后不知道客户端有没有收到. 如果客户端没收到, 则客户端会超时重传, 此时要多等2个MSL才能再次收到重传. 所以服务端要多等2个MSL才能安心睡去.</p>
+</li>
+<li><p>为什么要使用多线程而不使用多进程?(此处代码将多线程部分注释掉了, 只能阻塞接收一个客户端的消息)</p>
+<p>HTTP协议一次请求只对应一次响应, 每次处理不需要复杂逻辑, 线程就够用了, 新开一个进程就是杀鸡用牛刀.</p>
+</li>
+</ol>
+<h1 id="用到的库函数、定义等"><a href="#用到的库函数、定义等" class="headerlink" title="用到的库函数、定义等"></a>用到的库函数、定义等</h1><ol>
+<li><p>sockaddr_in结构体</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> &#123;</span></span><br><span class="line">	<span class="type">short</span> <span class="type">int</span> sin_family;           <span class="comment">/* Address family */</span></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">short</span> <span class="type">int</span> sin_port;    <span class="comment">/* Port number */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">in_addr</span> <span class="title">sin_addr</span>;</span>        <span class="comment">/* Internet address */</span></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> sin_zero[<span class="number">8</span>];      <span class="comment">/* Same size as struct sockaddr */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>htonl(), htons()</p>
+<p>htonl–&gt;<strong>h</strong>ost <strong>to</strong> <strong>n</strong>et (unsigned)<strong>l</strong>ong(s-short)</p>
+<p>将本机字节顺序转化为网络字节序(大端)</p>
+<p>相反的操作是ntohl(), ntohs()</p>
+</li>
+<li><p>AF_INET</p>
+<p>IPv4的协议, 用于表示该socket使用IPv4.</p>
+</li>
+<li><p>bind()</p>
+<p>在完成第一步创建套接字，分配了一个Socket描述符后，<strong>服务端</strong>的第二步就是使用在这个描述符用<strong>Bind</strong>绑定.</p>
+<p>bind()的作用是将参数sockfd和addr绑定在一起，使sockfd这个用于网络通讯的文件描述符监听addr所描述的地址和端口号</p>
+<p>bind()系统调用的主要用处：</p>
+<p>1.服务器向系统注册它的众所周知的地址。面向连接和无连接的服务器在接受客户的请求之前都必须做这一步。 </p>
+<p>2.客户可为自己注册一个特定的地址，以便服务器可以用这个有效的地址送回响应。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;socket.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">bind</span><span class="params">( <span class="type">int</span> sockfd, <span class="keyword">struct</span> sockaddr * addr, <span class="type">socklen_t</span> addrlen )</span></span><br></pre></td></tr></table></figure>
+
+<p>返回0说明bind成功, -1说明bind失败</p>
+</li>
+<li><p>getsockname()</p>
+<p><em>getsockname函数用于获取与某个套接字关联的本地协议地址</em><br><em>getpeername函数用于获取与某个套接字关联的外地协议地址</em></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">getsockname</span><span class="params">(<span class="type">int</span> sockfd, <span class="keyword">struct</span> sockaddr *localaddr, <span class="type">socklen_t</span> *addrlen)</span>;<span class="comment">//将sockfd的本地地址放入localaddr里, 长度放入addrlen</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">getpeername</span><span class="params">(<span class="type">int</span> sockfd, <span class="keyword">struct</span> sockaddr *peeraddr, <span class="type">socklen_t</span> *addrlen)</span>;<span class="comment">//将sockfd连接的peer地址放入peeraddr里</span></span><br></pre></td></tr></table></figure>
+
+<p>getsockname是会修改sockaddr中的内容的; 而bind不会, bind只是向系统注册某个文件描述符sockfd是跟某个socket结构体互相关联的; 同时系统在分配端口号等动作后也并不会主动去修改sockaddr中的内容, 而是需要手动调用getsockname进行修改.</p>
+<p>用途:</p>
+<ul>
+<li>在不调用bind的TCP客户，当connect成功返回后，getsockname返回分配给此连接的本地IP地址和本地端口号；</li>
+<li>在以端口号为0调用bind后，使用getsockname返回内核分配的本地端口号；</li>
+<li>getsockname可用来获取某套接口的地址族；</li>
+<li>在捆绑了通配IP地址的TCP服务器上，当连接建立后，可以使用getsockname获得分配给此连接的本地IP地址；</li>
+<li>当一个服务器调用exec启动后，他获得客户身份的唯一途径是调用getpeername函数。</li>
+</ul>
+<p>以下为个人理解: </p>
+<p>以上过程中主要涉及三个东西: 代码中的sockaddr结构体, 文件描述符sockfd, 以及系统中的socket. 文件描述符sockfd可以看作程序与系统中socket的接口, 程序可以通过sockfd使用sockgetname, sockpeername来访问系统中的socket, 并将获得的数据存储到scokaddr结构体中. </p>
+<p>那为什么要bind? bind之前sockaddr中的成员已经被赋值, 是用来初始化系统中socket的参数, 使用bind来修改系统中的socket值使之符合需要(比如初始端口为零时需要系统分配端口), bind之后系统中的socket值被修改而sockaddr结构体还是原本的样子.</p>
+</li>
+<li><p>listen()</p>
+<p><em>listen函数使用主动连接套接口变为被连接套接口，使得一个进程可以接受其它进程的请求，从而成为一个服务器进程。在TCP服务器编程中listen函数把进程变为一个服务器，并指定相应的套接字变为被动连接。</em></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;socket.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">listen</span> <span class="params">( <span class="type">int</span> sockfd,  <span class="type">int</span> backlog )</span></span><br></pre></td></tr></table></figure>
+
+<p>返回0成功, -1失败</p>
+<p>backlog指队列中连接的上限</p>
+</li>
+<li><p>accept()</p>
+<p><em>accept函数主要用于服务器端，一般位于listen函数之后，默认会阻塞进程，直到有一个客户请求连接，建立好连接后，它返回的一个新的套接字 socketfd_new ，此后，服务器端即可使用这个新的套接字socketfd_new与该客户端进行通信，而sockfd 则继续用于监听其他客户端的连接请求。</em></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;socket.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">accept</span><span class="params">(<span class="type">int</span> sockfd, <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> *addrlen)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果连接成功则会返回一个由系统分配的全新描述符来代表与客户端的TCP连接, 如果对addr和addrlen不感兴趣可以直接传入一个空指针(这里就是这样).</p>
+</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/TinyHTTP/">#TinyHTTP</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>TinyHTTP源码阅读笔记(一)</div>
+      <div>https://ruky0.github.io/2023/04/19/TinyHTTP源码阅读笔记-一/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Ruky</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年4月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/04/23/TinyHTTP%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0%E4%BA%8C/" title="TinyHTTP源码阅读笔记(二)">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">TinyHTTP源码阅读笔记(二)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/04/19/VSCode%E4%B8%ADlaunch-json-tasks-json-settings-json%E6%98%AF%E5%B9%B2%E4%BB%80%E4%B9%88%E7%9A%84/" title="VSCode中launch.json/tasks.json/settings.json是干什么的?">
+                        <span class="hidden-mobile">VSCode中launch.json/tasks.json/settings.json是干什么的?</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
